@@ -1,5 +1,6 @@
 package com.example.animated_card_demo
 
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,11 +12,21 @@ class CardAdapter(private val cardList: MutableList<CardItem>) :
     RecyclerView.Adapter<CardAdapter.CardViewHolder>() {
 
     private var selectedItemPosition = -1
+    private var onItemClickListener: ((Int) -> Unit)? = null
 
     inner class CardViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val cardView: MaterialCardView = itemView.findViewById(R.id.cardView)
         val titleTextView: TextView = itemView.findViewById(R.id.titleTextView)
         val descriptionTextView: TextView = itemView.findViewById(R.id.descriptionTextView)
+        init {
+            cardView.setOnClickListener {
+                onItemClickListener?.invoke(adapterPosition)
+            }
+        }
+
+    }
+    fun setOnItemClickListener(listener: (Int) -> Unit) {
+        onItemClickListener = listener
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CardViewHolder {
@@ -44,9 +55,17 @@ class CardAdapter(private val cardList: MutableList<CardItem>) :
                 } else {
                     selectedItemPosition = 0
                 }
+            } else {
+                // If the tapped card is at position 0, navigate to the new screen
+                if (tappedPosition == 0) {
+                    val context = holder.itemView.context
+                    val intent = Intent(context, NewActivity::class.java)
+                    context.startActivity(intent)
+                }
             }
         }
     }
+
 
 
     override fun getItemCount(): Int {
