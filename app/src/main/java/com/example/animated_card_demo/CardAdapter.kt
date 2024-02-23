@@ -15,12 +15,14 @@ class CardAdapter(private val cardList: MutableList<CardItem>) :
     RecyclerView.Adapter<CardAdapter.CardViewHolder>() {
 
     private var selectedItemPosition = -1
+    private var previousSelectedItemPosition = -1
     private var onItemClickListener: ((Int) -> Unit)? = null
 
     inner class CardViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val cardView: MaterialCardView = itemView.findViewById(R.id.cardView)
         val titleTextView: TextView = itemView.findViewById(R.id.titleTextView)
         val descriptionTextView: TextView = itemView.findViewById(R.id.descriptionTextView)
+
         init {
             cardView.setOnClickListener {
                 onItemClickListener?.invoke(adapterPosition)
@@ -36,6 +38,7 @@ class CardAdapter(private val cardList: MutableList<CardItem>) :
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_card, parent, false)
         return CardViewHolder(view)
     }
+
     fun dpToPxFun(dp: Float, context: Context): Int {
         return TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_DIP,
@@ -44,6 +47,7 @@ class CardAdapter(private val cardList: MutableList<CardItem>) :
         )
             .toInt()
     }
+
     override fun onBindViewHolder(holder: CardViewHolder, position: Int) {
         val currentItem = cardList[position]
         holder.titleTextView.text = currentItem.title
@@ -60,10 +64,12 @@ class CardAdapter(private val cardList: MutableList<CardItem>) :
                 layoutParams.setMargins(0, 0, 0, 0)
                 holder.cardView.setPadding(30, 30, 30, 30)
             }
+
             1 -> {
                 layoutParams.setMargins(0, 20, 0, 0)
                 holder.cardView.setPadding(30, 30, 30, 30)
             }
+
             else -> {
                 layoutParams.setMargins(0, dpToPxFun(-45f, holder.itemView.context), 0, 0)
                 holder.cardView.setPadding(30, 30, 30, 30)
@@ -74,28 +80,50 @@ class CardAdapter(private val cardList: MutableList<CardItem>) :
 
         // Handle card click event
         holder.cardView.setOnClickListener {
-            val tappedPosition = holder.adapterPosition
-            if (selectedItemPosition != tappedPosition) {
-                // Move the tapped card to the zeroth position
-                cardList.add(0, cardList.removeAt(tappedPosition))
-                notifyItemMoved(tappedPosition, 0)
+            val i = if (holder.adapterPosition>previousSelectedItemPosition) 1 else 0
+            previousSelectedItemPosition = selectedItemPosition
+            selectedItemPosition = holder.adapterPosition
 
-                // If there was a previously selected card, move it back to its original position
-                if (selectedItemPosition != -1) {
-                    val previousPosition = selectedItemPosition
-                    notifyItemMoved(0, previousPosition)
-                    selectedItemPosition = previousPosition
-                } else {
-                    selectedItemPosition = 0
-                }
-            } else {
-                // If the tapped card is at position 0, navigate to the new screen
-                if (tappedPosition == 0) {
-                    val context = holder.itemView.context
-                    val intent = Intent(context, NewActivity::class.java)
-                    context.startActivity(intent)
-                }
+            if (selectedItemPosition!=-1) {
+                cardList.add(0, cardList.removeAt(selectedItemPosition))
+                notifyItemChanged(0)
+                notifyItemChanged(1)
+                notifyItemChanged(selectedItemPosition)
             }
+
+            if (previousSelectedItemPosition != -1) {
+                cardList.add(previousSelectedItemPosition + i, cardList.removeAt(1))
+                notifyItemChanged(previousSelectedItemPosition + i)
+            }
+
+            if (selectedItemPosition!=-1)
+                notifyItemMoved(selectedItemPosition, 0)
+
+            if (previousSelectedItemPosition != -1)
+                notifyItemMoved(1, previousSelectedItemPosition+i)
+
+//            val tappedPosition = holder.adapterPosition
+//            if (selectedItemPosition != tappedPosition) {
+//                // Move the tapped card to the zeroth position
+//                cardList.add(0, cardList.removeAt(tappedPosition))
+//                notifyItemMoved(tappedPosition, 0)
+//
+//                // If there was a previously selected card, move it back to its original position
+//                if (selectedItemPosition != -1) {
+//                    val previousPosition = selectedItemPosition
+//                    notifyItemMoved(0, previousPosition)
+//                    selectedItemPosition = previousPosition
+//                } else {
+//                    selectedItemPosition = 0
+//                }
+//            } else {
+//                // If the tapped card is at position 0, navigate to the new screen
+//                if (tappedPosition == 0) {
+//                    val context = holder.itemView.context
+//                    val intent = Intent(context, NewActivity::class.java)
+//                    context.startActivity(intent)
+//                }
+//            }
         }
     }
 

@@ -11,7 +11,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val cardList = ArrayList<CardItem>()
-        for (i in 1..5) {
+        for (i in 1..10) {
             cardList.add(CardItem("Title $i", "Description $i"))
         }
 
